@@ -1,4 +1,3 @@
-#%%
 from numpy import where, linspace,nan,meshgrid, array, squeeze, where, min, pi, stack,zeros, loadtxt, arcsin, mean, concatenate, sum, nanmin, nanmean, nanmax, array
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
@@ -28,7 +27,7 @@ from matplotlib.colors import TwoSlopeNorm, LogNorm
 import pywt
 from scipy import signal
 from scipy.stats import chi2
-#%%
+
 def Tvbar_fit_curve(year,month):
     nc_coef = nc.Dataset('/Dellwork4/cwuchiu/fit_curve_deg4_2004.nc')
     fit = array(nc_coef.variables['fit_curve'])
@@ -36,16 +35,15 @@ def Tvbar_fit_curve(year,month):
     Tvbar_diff = fit[m] - fit[0]
     nc_coef.close()
     return Tvbar_diff
-#%%
+
 ncfile = nc.Dataset('/Dellwork4/cwuchiu/TC_time_1979_2024_not_set_noET_34kt.nc')
 tt = np.array(ncfile.variables['time'])
 time_tc = [str(x) for x in tt]
 ncfile.close()
-#%%
+
 import numpy as np
 import netCDF4 as nc
-from tqdm import trange
-import os
+
 
 # === 1. 設定路徑與網格 ===
 input_file_path = '/Dellwork4/cwuchiu/Tvbar_hourly.nc'
@@ -148,154 +146,3 @@ in_nc.close()
 out_nc.close()
 
 print(f"\n[Done] Successfully saved {out_idx} hourly adjusted HGT fields to: {output_file_path}")
-
-#%%
-ncfile = nc.Dataset('/Dellwork4/cwuchiu/TC_time_WNPSH_1979-2024_2004_not_set_noET_34kt.nc')
-east = array(ncfile.variables['east_monthly'])
-west = array(ncfile.variables['west_monthly'])
-north = array(ncfile.variables['north_monthly'])
-south = array(ncfile.variables['south_monthly'])
-
-Lat = array(ncfile.variables['latitude'])
-Lon = array(ncfile.variables['longitude'])
-
-ncfile.close()
-
-WNP = [east,west,north,south]
-SH = np.zeros((4, 276)) #E W N S
-for sb in range(4):
-    reshaped = np.zeros((46, 6))
-    kkk=0
-    for i in range(46):
-        for j in range(6):
-            tt = WNP[sb]
-            reshaped[i,j] = tt[kkk]
-            kkk+=1
-            
-    
-    
-    SeasonalCycle = np.nanmean(reshaped, axis=0)
-    
-    # 計算 anomaly：原始資料 - 平均季節循環（broadcasting）
-    Anomaly_full = reshaped - SeasonalCycle  # shape = (10, 4320, 201, 321)
-    
-    anomaly = Anomaly_full.reshape(276)
-    SH[sb] = anomaly
-
-
-title = ['east edge anomaly','west edge anomaly','north edge anomaly','south edge anomaly']
-time = np.linspace(1979,2024,276)
-
-for i in range(4):
-    mask = ~np.isnan(SH[i])
-    save=SH[i]
-    slope1, intercept1, r_value1, p_value1, std_err1 = linregress(time[mask], save[mask])
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    
-    plt.plot(time,SH[i])
-    plt.plot(time,time*slope1+intercept1,'r')
-    
-    
-    plt.xlabel('time (yr)',fontsize = 18)
-    plt.xticks(fontsize=18)
-    plt.yticks(fontsize=18)
-    if i==0:
-        ax.text(0.02, 0.09, f"p-value={p_value1:.2e}",
-        transform=ax.transAxes,  # 使用軸座標系統
-        fontsize=18,
-        va='top', ha='left',     # 對齊方式：上對齊、左對齊
-        bbox=dict(facecolor='white', alpha=0.6, edgecolor='none'))  # 可選：加背景框讓文字更清晰
-
-        #plt.text(2000,160,f"p-value={p_value1:.2e}",fontsize=18)
-        plt.ylabel('Longitude',fontsize = 18)
-    elif i==1:
-        ax.text(0.02, 0.09, f"p-value={p_value1:.2e}",
-        transform=ax.transAxes,  # 使用軸座標系統
-        fontsize=18,
-        va='top', ha='left',     # 對齊方式：上對齊、左對齊
-        bbox=dict(facecolor='white', alpha=0.6, edgecolor='none'))  # 可選：加背景框讓文字更清晰
-        plt.ylabel('Longitude',fontsize = 18)
-    elif i==2:
-        ax.text(0.02, 0.09, f"p-value={p_value1:.2e}",
-        transform=ax.transAxes,  # 使用軸座標系統
-        fontsize=18,
-        va='top', ha='left',     # 對齊方式：上對齊、左對齊
-        bbox=dict(facecolor='white', alpha=0.6, edgecolor='none'))  # 可選：加背景框讓文字更清晰
-        plt.ylabel('Latitude',fontsize = 18)
-    else:
-        ax.text(0.02, 0.09, f"p-value={p_value1:.2e}",
-        transform=ax.transAxes,  # 使用軸座標系統
-        fontsize=18,
-        va='top', ha='left',     # 對齊方式：上對齊、左對齊
-        bbox=dict(facecolor='white', alpha=0.6, edgecolor='none'))  # 可選：加背景框讓文字更清晰
-        plt.ylabel('Latitude',fontsize = 18)
-    
-    plt.title(title[i],fontsize=18)
-    plt.savefig('WNPSH_shift_adjust_TC_1979-2024_ANOMALY_'+title[i]+'.png',dpi=400)
-    plt.tight_layout()
-    plt.show()
-#%%
-ncfile = nc.Dataset('/Dellwork4/cwuchiu/TC_time_WNPSH_1979-2024_2004_noET_34kt.nc')
-hgt_adjust = array(ncfile.variables['HGT_monthly'])
-ncfile.close()
-hgt_adjust_yr = np.zeros((46,201,321))
-for i in range(46):
-    hgt_adjust_yr[i]=np.nanmean(hgt_adjust[6*i:6*(i+1)],axis=0)
-time = np.linspace(1979,2024,46)
-time_mean = np.mean(time)
-hgt_adjust_mean = np.mean(hgt_adjust_yr,axis=0)
-numerator_direct = np.sum((time[:, None, None] - time_mean) * (hgt_adjust_yr - hgt_adjust_mean[None, :, :]), axis=0)
-denominator_direct = np.sum((time[:, None, None] - time_mean)**2, axis=0)
-
-dhgt500dt = numerator_direct / denominator_direct
-
-p_value = np.zeros((201,321))
-for i in range(201):
-    for j in range(321):
-        _, _, _, p_value[i,j], _ = linregress(time, hgt_adjust_yr[:,i,j])
-
-lon = np.linspace(100,180,321)
-lat = np.linspace(0,50,201)[::-1]
-
-plt.figure(figsize = (10,6))
-x_extent = linspace(-180,180,37)
-y_extent = linspace(-90,90,19)
-ax = plt.subplot(1,1,1,projection=ccrs.PlateCarree())
-ax.coastlines(resolution='50m',alpha=0.5)
-ax.set_xticks(x_extent, crs=ccrs.PlateCarree())
-ax.set_yticks(y_extent, crs=ccrs.PlateCarree())
-lon_formatter = LongitudeFormatter(zero_direction_label=True)
-lat_formatter = LatitudeFormatter()
-ax.xaxis.set_major_formatter(lon_formatter)
-ax.yaxis.set_major_formatter(lat_formatter)
-ax.set_extent([100,180,0,50],crs = ccrs.PlateCarree())
-
-levels = np.arange(-0.3, 1.51, 0.1)
-norm = mcolors.TwoSlopeNorm(vmin=levels.min(), vcenter=0.0, vmax=levels.max())
-
-plt.rcParams['hatch.color'] = 'gray'
-ax.contourf(
-    lon, lat, p_value,
-    levels=[0,0.01],
-    colors='none',            # 不填色，只顯示斜線
-    hatches=['////'],  # 斜線樣式
-)
-cf = ax.contourf(
-    lon, lat, dhgt500dt,
-    levels=levels,
-    cmap='RdBu_r',   # 或 'bwr'/'seismic'，皆為負藍正紅的發散色盤
-    norm=norm,
-    alpha=0.5,
-    extend='both'    # 讓超出範圍的值在色棒末端以尖角標示
-)
-cs = ax.contour(lon, lat, dhgt500dt, levels=levels, colors='k', linewidths=0.8)
-ax.clabel(cs, inline=True, fontsize=8, fmt="%.2f")
-ax.coastlines(resolution='50m', linewidth=1)
-cbar = plt.colorbar(cf, orientation='horizontal', pad=0.1, aspect=40)
-cbar.set_label('hgt500 trend (gpm/year)')
-
-
-ax.set_title('500hPa geopotential height trend (1979–2024 TC time)', fontsize=12)
-plt.savefig('500z_adjust_TC_1979-2024.png',dpi=400)
-plt.show()
