@@ -75,21 +75,6 @@ for deg in range(1, max_degree + 1):
     print(f'deg={best_deg}')
 
 
-#================================
-plt.figure(figsize=(8,5))
-plt.plot(time, np.nanmean(anomaly,axis=(1,2)), label='Tvbar anomaly', color='r')
-plt.plot(time, fit_curve, label=f'Best Fit (deg={4})', color='b', linestyle='--')
-plt.xlabel('Time',fontsize=14)
-plt.ylabel('Tvbar anomaly',fontsize=14)
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
-plt.legend()
-plt.title('Polynomial Fit Comparison by AIC',fontsize=18)
-plt.tight_layout()
-plt.savefig('Tvbar_fit_curve.png',dpi=400)
-plt.show()
-
-
 
 #================================
 strong = nc.Dataset('fit_curve_deg4_2004.nc','w',format='NETCDF4')
